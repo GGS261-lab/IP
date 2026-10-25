@@ -1,0 +1,82 @@
+
+import cv2
+import numpy as np
+
+
+# Read the color image
+img = cv2.imread("Shapes.jpg", 0)
+
+
+# Convert image to grayscale
+gray = cv2.cvtColor(img_color, cv2.COLOR_BGR2GRAY) 
+
+# Apply Gaussian Blur
+blur = cv2.GaussianBlur(gray, (5, 5), 0)
+
+# Detect edges using Canny
+edges = cv2.Canny(blur, 50, 150)
+
+
+# Hough Line Detection
+lines = cv2.HoughLinesP(
+    edges,
+    1,
+    np.pi / 180,
+    threshold=100,
+    minLineLength=50,
+    maxLineGap=10
+)
+
+if lines is not None:
+    lines = np.asarray(lines).reshape(-1, 4)
+
+    for x1, y1, x2, y2 in lines:
+        cv2.line(
+            img_color,
+            (int(x1), int(y1)),
+            (int(x2), int(y2)),
+            (0, 255, 0),
+            2
+        )
+
+
+# Hough Circle Detection
+circles = cv2.HoughCircles(
+    blur,
+    cv2.HOUGH_GRADIENT,
+    dp=1,
+    minDist=20,
+    param1=50,
+    param2=30,
+    minRadius=0,
+    maxRadius=0
+)
+
+if circles is not None:
+    circles = np.uint16(np.around(circles))
+
+    for circle in circles[0, :]:
+        x, y, radius = circle
+
+        # Draw circle outline in blue
+        cv2.circle(
+            img_color,
+            (x, y),
+            radius,
+            (255, 0, 0),
+            2
+        )
+
+        # Draw center in red
+        cv2.circle(
+            img_color,
+            (x, y),
+            2,
+            (0, 0, 255),
+            3
+        )
+
+# Display detected shapes
+cv2.imshow("Detected Shapes", img_color)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
